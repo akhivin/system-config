@@ -107,7 +107,22 @@ class openstack_project::gerrit (
     auth_version   => '1.0',
   }
 
+  $ldap_user     = hiera('ldap_root_user')
+  $ldap_password = hiera('ldap_root_password')
+  $ldap_domain   = hiera('ldap_domain')
+  $ldap_dn = domain2dn(hiera("ldap_domain"))
+  $ldap_ip = hiera('ldap_ip')
+
   class { '::gerrit':
+    gerrit_auth_type                    => 'LDAP',
+    ldap_server                         => "ldap://${ldap_ip}",
+    ldap_account_base                   => "OU=users,${ldap_dn}",
+    ldap_username                       => "CN=${ldap_user},${ldap_dn}",
+    ldap_password                       => $ldap_password,
+    ldap_accountfullname                => 'cn',
+    ldap_account_pattern                => '(cn=${username})',
+    ldap_account_email_address          => 'mail',
+
     vhost_name                          => $vhost_name,
     canonicalweburl                     => $canonicalweburl,
     git_http_url                        => $git_http_url,
